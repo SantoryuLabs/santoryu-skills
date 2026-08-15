@@ -30,13 +30,13 @@ than matching known key names. It is pure stdlib Python — no dependencies.
 ## Commands
 
 ```bash
-{{CMD}} summary <file>
-{{CMD}} schema  <file> [--depth N]
-{{CMD}} find    <file> <query> [--key KEY] [--contains] [--under PATH] [--limit N] [--fields A,B] [--full]
-{{CMD}} list    <file> [--under PATH] [--field FIELD] [--limit N]
-{{CMD}} get     <file> <dotpath> [--full]
-{{CMD}} grep    <file> <pattern> [--limit N]
-{{CMD}} install
+query-json summary <file>
+query-json schema  <file> [--depth N]
+query-json find    <file> <query> [--key KEY] [--contains] [--under PATH] [--limit N] [--fields A,B] [--full]
+query-json list    <file> [--under PATH] [--field FIELD] [--limit N]
+query-json get     <file> <dotpath> [--full]
+query-json grep    <file> <pattern> [--limit N]
+query-json install
 ```
 
 `--json` is available on every query command for machine-readable output.
@@ -59,19 +59,19 @@ Deep-walks every object in the file and matches on one field (`name` by default)
 
 ```bash
 # exact match on `name`
-{{CMD}} find build_result.json B_42
+query-json find build_result.json B_42
 
 # match a different field
-{{CMD}} find package-lock.json 4.17.21 --key version
+query-json find package-lock.json 4.17.21 --key version
 
 # substring when you only know part of the value
-{{CMD}} find build_result.json 147 --contains
+query-json find build_result.json 147 --contains
 
 # keep the output tiny
-{{CMD}} find build_result.json B_42 --fields name,sectionSize,length,connections
+query-json find build_result.json B_42 --fields name,sectionSize,length,connections
 
 # scope the search when the file has history/undo/snapshot branches
-{{CMD}} find build_result.json 147 --contains --under members
+query-json find build_result.json 147 --contains --under members
 ```
 
 Output is the JSON `path` of each hit followed by the object itself. Capped at
@@ -90,20 +90,20 @@ Array indices collapse, so sibling arrays report as one deduplicated group:
 
 ```bash
 # every array of objects in the file, with their `name` values
-{{CMD}} list build_result.json
+query-json list build_result.json
 
 # just one subtree
-{{CMD}} list build_result.json --under members.beams
+query-json list build_result.json --under members.beams
 
 # list by a different field
-{{CMD}} list openapi.json --field operationId
+query-json list openapi.json --field operationId
 ```
 
 ### `get` — extract one value by dot path
 
 ```bash
-{{CMD}} get build_result.json members.beams[0].sectionSize
-{{CMD}} get build_result.json pages[0].members.columns
+query-json get build_result.json members.beams[0].sectionSize
+query-json get build_result.json pages[0].members.columns
 ```
 
 A wrong path prints the available sibling keys, so a failed `get` still makes
@@ -113,7 +113,7 @@ dot cannot be addressed this way.
 ### `grep` — raw text, with line numbers
 
 ```bash
-{{CMD}} grep build_result.json "147_0_beam"
+query-json grep build_result.json "147_0_beam"
 ```
 
 Never parses the file. Long lines are truncated around the match and annotated
@@ -140,10 +140,13 @@ Chain commands with `;`, not `&&`. There is no `head` — pipe to
 
 ## Install
 
+`query-json` ships in the `santoryu` package; one command registers every skill
+it carries:
+
 ```bash
-{{CMD}} install
+santoryu install
 ```
 
-Copies this `SKILL.md` into `~/.claude/skills/query-json/`, stamping the script's
-absolute path. The script stays in `santoryu-cursor/query-json/`. Re-run it after
-moving or editing anything here, otherwise the installed copy goes stale.
+Copies this `SKILL.md` into `~/.claude/skills/query-json/` verbatim — the
+command is on PATH, so no filesystem path is written into the installed copy
+and moving the source checkout cannot break it. Re-run after editing this file.

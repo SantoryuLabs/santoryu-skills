@@ -92,8 +92,7 @@ concrete alternative. Don't refuse without a reason; don't comply silently.
 
 - Never `Read`/`cat` a JSON that is large, minified, or of unknown size — one
   minified line can be megabytes, so a partial read still pulls all of it. Use the
-  `query-json` skill: `python "C:\Users\faruk\santoryu-skills\query-json\query_json.py"`
-  with `summary` / `find` / `list` / `get` / `grep`.
+  `query-json` command with `summary` / `find` / `list` / `get` / `grep`.
 
 ## Santoryu (Cursor + Opus orchestration)
 
@@ -106,7 +105,7 @@ usage: santoryu cursor [-h] [--list-models]
 - BINDING for repo work: any bug, feature, or refactor investigation STARTS with
   a Cursor plan run via the santoryu skill — follow its workflow exactly. Do NOT
   substitute Claude Code's own exploration subagents (Task / Explore agents),
-  parallel greps, or speculative file reads. If santoryu.py fails, report the
+  parallel greps, or speculative file reads. If `santoryu` fails, report the
   error and stop; no silent fallback. Sole exception: the user already pinpointed
   the exact change — skip the plan run and say so out loud.
 - Hand Cursor the whole problem in ONE prompt: symptom + expected behavior,

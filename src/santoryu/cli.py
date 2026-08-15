@@ -18,10 +18,10 @@ The `fast` blade is temporarily disabled (see FAST_ENABLED); only `cursor` is
 exposed on the CLI. Its implementation is kept intact for easy re-enabling.
 
 Usage:
-  python3 santoryu.py install                 # register the skill (copies SKILL.md)
-  python3 santoryu.py cursor --prompt-file plan.txt --mode plan
-  python3 santoryu.py cursor --prompt "Apply the reviewed plan" --mode agent
-  python3 santoryu.py cursor --list-models
+  santoryu install                            # register the packaged skills
+  santoryu cursor --prompt-file plan.txt --mode plan
+  santoryu cursor --prompt "Apply the reviewed plan" --mode agent
+  santoryu cursor --list-models
 """
 import argparse
 import asyncio
@@ -32,15 +32,31 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-# python-dotenv is optional: it may not be installed yet when bootstrapping via
-# `santoryu.py install`. If present, auto-load the repo-local .env (which sits
-# next to this script); otherwise fall back to real environment variables.
-try:
-    from dotenv import load_dotenv
+from santoryu.skills import install_skills
 
-    load_dotenv(Path(__file__).parent / ".env")
-except ImportError:
-    pass
+# The API key must never live inside the package: once installed, this module
+# sits in site-packages, so a key kept "next to the script" would either be
+# unreachable or, worse, shipped inside the wheel. It lives in the process
+# environment, or in a user-level file that survives the checkout being moved.
+USER_ENV_FILE = Path.home() / ".santoryu" / ".env"
+
+# Sampled before the env file is loaded: load_dotenv writes into os.environ, so
+# afterwards there is no way to tell a real environment variable from a file one.
+_KEY_FROM_ENVIRONMENT = bool(os.environ.get("CURSOR_API_KEY"))
+
+
+def _load_user_env():
+    # python-dotenv is a declared dependency, but tolerate its absence so a
+    # partially-installed environment still runs on real environment variables.
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    if USER_ENV_FILE.is_file():
+        load_dotenv(USER_ENV_FILE)
+
+
+_load_user_env()
 
 
 def die(msg: str, code: int = 1):
@@ -475,56 +491,31 @@ def fast_run(args):
 
 
 # --------------------------------------------------------------------------- #
-# Blade 3: install — register the skill with Claude Code
+# Blade 3: install — register the packaged skills with Claude Code
 #
-# Only SKILL.md is copied into the Claude skills dir; the script (and its .env)
-# stay in this repo. The copied SKILL.md is stamped with this script's absolute
-# path so Claude invokes it from here, and no secret ever lands in the skills dir.
+# A straight copy of every SKILL.md this package ships. The markdown names the
+# console commands, which are on PATH, so no path is stamped and no secret is
+# ever written into the skills dir.
 # --------------------------------------------------------------------------- #
 
 
-def _skills_target_dir():
-    base = os.environ.get("CLAUDE_CONFIG_DIR") or (Path.home() / ".claude")
-    return Path(base) / "skills" / "santoryu"
-
-
 def install_run(args):
-    here = Path(__file__).resolve().parent
-    src_skill = here / "SKILL.md"
-    if not src_skill.is_file():
-        die(f"ERROR: SKILL.md not found next to santoryu.py ({src_skill}).")
+    try:
+        written = install_skills()
+    except (OSError, RuntimeError) as exc:
+        die(f"ERROR: could not install skills: {exc}")
 
-    script_path = str((here / "santoryu.py").resolve())
-    target_dir = _skills_target_dir()
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target_skill = target_dir / "SKILL.md"
-
-    # Stamp the absolute script path into the copied SKILL.md: the script lives
-    # in this repo, not beside the installed SKILL.md, so command examples must
-    # carry its full path for Claude to invoke it from other working dirs.
-    # Stamp with the launcher that actually exists on this host: sys.executable
-    # is the interpreter running install, so it is guaranteed to work (on this
-    # Windows host only `python` exists, not `python3`).
-    launcher_cmd = f'"{sys.executable}"'
-    text = src_skill.read_text(encoding="utf-8")
-    for launcher in ("python3 santoryu.py", "python santoryu.py"):
-        text = text.replace(launcher, f'{launcher_cmd} "{script_path}"')
-    target_skill.write_text(text, encoding="utf-8")
-
-    # Cursor API key status (already env/.env-loaded at import if present).
-    env_file = here / ".env"
-    if os.environ.get("CURSOR_API_KEY"):
-        key_status = "OK (found in environment or repo .env)"
-    elif env_file.is_file():
-        key_status = f"present in {env_file} (auto-loaded at runtime)"
+    if _KEY_FROM_ENVIRONMENT:
+        key_status = "OK (found in environment)"
+    elif os.environ.get("CURSOR_API_KEY"):
+        key_status = f"OK (loaded from {USER_ENV_FILE})"
     else:
-        key_status = f"MISSING — export CURSOR_API_KEY=crsr_... or add it to {env_file}"
+        key_status = f"MISSING — set CURSOR_API_KEY=crsr_... or add it to {USER_ENV_FILE}"
 
-    print(f"Installed SKILL.md -> {target_skill}")
-    print(f"Script stays at    -> {script_path}")
+    for target in written:
+        print(f"Installed skill    -> {target}")
     print(f"Cursor API key     -> {key_status}")
-    print("Claude Code will discover the 'santoryu' skill on the next session.")
-    print("Deps (if needed):   pip install -r requirements.txt")
+    print("Claude Code will discover the skills on the next session.")
 
 
 # --------------------------------------------------------------------------- #
@@ -596,7 +587,7 @@ def build_parser():
         f.add_argument("--max-tokens", type=int, default=8000)
 
     # --- install blade ---
-    sub.add_parser("install", help="Register the skill with Claude Code (copies SKILL.md only).")
+    sub.add_parser("install", help="Register the packaged skills (santoryu, query-json) with Claude Code.")
 
     return ap
 

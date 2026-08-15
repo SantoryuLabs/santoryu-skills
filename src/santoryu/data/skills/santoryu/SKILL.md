@@ -17,7 +17,7 @@ time only at the two ends: a sharp spec up front, a real review at the end.
 ## Hard rules — read before anything else
 
 1. **Repo investigations START with a Cursor plan run.** Any bug, feature, or
-   refactor task on a codebase begins with `santoryu.py cursor --mode plan`.
+   refactor task on a codebase begins with `santoryu cursor --mode plan`.
    Do NOT substitute Claude Code's own exploration subagents (Task / Explore
    agents), parallel greps, or speculative file reads for this step — those are
    exactly the habits this skill overrides.
@@ -26,7 +26,7 @@ time only at the two ends: a sharp spec up front, a real review at the end.
    code", "find the translation code") — deciding where to look is Cursor's
    job. Pre-decomposition keeps the analysis in Opus and demotes Cursor to
    grep.
-3. **No silent fallback.** If santoryu.py errors, report the error to the user
+3. **No silent fallback.** If `santoryu` errors, report the error to the user
    and stop. Never quietly revert to self-exploration.
 4. **Sole exception:** a trivial task where the user has already pinpointed the
    exact change (a one-liner, a named typo). Skip the plan run — and say
@@ -34,52 +34,50 @@ time only at the two ends: a sharp spec up front, a real review at the end.
 
 ## The blades
 
-Both live in one script, `santoryu.py`, as subcommands.
+Both are subcommands of the `santoryu` command.
 
-**`santoryu.py cursor`** — runs a real Cursor agent (Composer 2.5 / Grok) with
+**`santoryu cursor`** — runs a real Cursor agent (Composer 2.5 / Grok) with
 repo awareness, tools, and the user's Cursor config. Auth is the user's
 `CURSOR_API_KEY`. Supports `--mode plan` (explore/audit/plan, no edits) and
 `--mode agent` (implement changes). Use this blade whenever the task involves
 the actual codebase.
 
-**`santoryu.py fast`** — a one-shot chat call to any OpenAI-compatible endpoint
+**`santoryu fast`** — a one-shot chat call to any OpenAI-compatible endpoint
 (xAI/Grok direct, OpenRouter, OpenAI). No repo awareness, no tools — prompt in,
 text out. Use it for raw drafting that doesn't need the repo. Requires
-`FAST_ENABLED = True` at the top of the script (flip it once if it's off) and
+`FAST_ENABLED = True` in `santoryu/cli.py` (flip it once if it's off) and
 one of `XAI_API_KEY` / `OPENROUTER_API_KEY` / `OPENAI_API_KEY`.
 
 ## Install
 
-Register the skill with Claude Code:
+Register every skill the package ships with Claude Code:
 
 ```bash
-py "C:\Users\faruk\santoryu-cursor\santoryu.py" install
+santoryu install
 ```
 
-This copies `SKILL.md` into `~/.claude/skills/santoryu/`, stamped with the
-script's absolute path; the script and its `.env` stay in the repo, so the
-Cursor key never lands in the skills dir. Dependencies are NOT installed by this
-command — run `pip install -r requirements.txt` yourself. Re-run `install` after
-moving the repo (it re-stamps the path). Edit the repo copy of SKILL.md, not the
-installed copy — `install` overwrites the installed copy.
+This copies each packaged `SKILL.md` into `~/.claude/skills/<name>/` verbatim —
+no path is stamped, so the install survives the source checkout being moved,
+renamed, or deleted. It is idempotent and overwrites a stale earlier install.
+Edit the packaged SKILL.md and re-run `install`, never the installed copy.
 
 ## Prerequisites
 
-**`cursor` blade:** `pip install -r requirements.txt` (Python 3.10+), and
-`export CURSOR_API_KEY=crsr_...` (User API key from Cursor Dashboard -> API
-Keys) — or drop it in the repo-local `.env`. Billing follows the user's own
-Cursor plan. Discover which model ids the account has (Grok may appear post-xAI
-integration):
+**`cursor` blade:** the package installed (`pipx install santoryu`, Python
+3.10+), and `CURSOR_API_KEY=crsr_...` (User API key from Cursor Dashboard ->
+API Keys) either exported or written into `~/.santoryu/.env`. Billing follows
+the user's own Cursor plan. Discover which model ids the account has (Grok may
+appear post-xAI integration):
 
 ```bash
-py "C:\Users\faruk\santoryu-cursor\santoryu.py" cursor --list-models
+santoryu cursor --list-models
 ```
 
 Runs on native Windows (no WSL): the `cursor` blade uses the SDK's async API,
 sidestepping the sync bridge's `select()`-on-pipe limitation.
 
-**`fast` blade:** `FAST_ENABLED = True` in the script, plus one provider key
-(see above). Check `santoryu.py fast --help` for provider/model overrides.
+**`fast` blade:** `FAST_ENABLED = True` in `santoryu/cli.py`, plus one provider
+key (see above). Check `santoryu fast --help` for provider/model overrides.
 
 ## Workflow (explore -> plan -> review -> apply)
 
@@ -126,7 +124,7 @@ Optional hints (don't limit yourself to these): <keywords/areas, if any>
 ```
 
 ```bash
-py "C:\Users\faruk\santoryu-cursor\santoryu.py" cursor --prompt-file plan_prompt.txt --mode plan
+santoryu cursor --prompt-file plan_prompt.txt --mode plan
 ```
 
 Capture the findings + plan from stdout. (Write prompt files to a scratch
@@ -170,7 +168,7 @@ Rule of thumb:
 - **Mechanical + bulky** (many files, repetitive edits, boilerplate) -> delegate
   back to Cursor:
   ```bash
-  py "C:\Users\faruk\santoryu-cursor\santoryu.py" cursor --prompt-file final_plan.txt --mode agent
+  santoryu cursor --prompt-file final_plan.txt --mode agent
   ```
   Then Opus reviews the diff.
 - **Small, subtle, or high-risk** -> Opus implements directly. A round trip

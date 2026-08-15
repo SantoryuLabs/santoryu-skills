@@ -9,20 +9,21 @@ array-of-objects by its structural path, and `summary` infers shape rather than
 matching known key names.
 
 Usage:
-  python query_json.py summary <file>
-  python query_json.py schema  <file> [--depth N]
-  python query_json.py find    <file> <query> [--key KEY] [--contains] [--limit N]
-  python query_json.py list    <file> [--under PATH] [--field FIELD]
-  python query_json.py get     <file> <dotpath>
-  python query_json.py grep    <file> <pattern>
-  python query_json.py install
+  query-json summary <file>
+  query-json schema  <file> [--depth N]
+  query-json find    <file> <query> [--key KEY] [--contains] [--limit N]
+  query-json list    <file> [--under PATH] [--field FIELD]
+  query-json get     <file> <dotpath>
+  query-json grep    <file> <pattern>
+
+Registering this as a Claude Code skill is `santoryu install`, which installs
+every skill the package ships.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -451,51 +452,6 @@ def grep_file(path: Path, pattern: str, limit: int = 50, max_line_chars: int = 2
 
 
 # --------------------------------------------------------------------------- #
-# install
-# --------------------------------------------------------------------------- #
-
-# Only SKILL.md is copied into the Claude skills dir; the script stays here. The
-# copied SKILL.md is stamped with this script's absolute path, so Claude invokes
-# it correctly from any working directory.
-
-SCRIPT_TOKEN = "{{CMD}}"
-
-
-def _skills_target_dir() -> Path:
-    base = os.environ.get("CLAUDE_CONFIG_DIR") or (Path.home() / ".claude")
-    return Path(base) / "skills" / "query-json"
-
-
-def install_run(_args) -> int:
-    here = Path(__file__).resolve().parent
-    src_skill = here / "SKILL.md"
-    if not src_skill.is_file():
-        print(f"error: SKILL.md not found next to query_json.py ({src_skill})", file=sys.stderr)
-        return 1
-
-    script_path = (here / "query_json.py").resolve()
-    # sys.executable is the interpreter running this install, so it is guaranteed
-    # to exist on this host -- unlike a bare `py` or `python3`.
-    command = f'"{sys.executable}" "{script_path}"'
-
-    text = src_skill.read_text(encoding="utf-8")
-    if SCRIPT_TOKEN not in text:
-        print(f"error: SKILL.md contains no {SCRIPT_TOKEN} token to stamp", file=sys.stderr)
-        return 1
-    text = text.replace(SCRIPT_TOKEN, command)
-
-    target_dir = _skills_target_dir()
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target_skill = target_dir / "SKILL.md"
-    target_skill.write_text(text, encoding="utf-8")
-
-    print(f"Installed SKILL.md -> {target_skill}")
-    print(f"Script stays at    -> {script_path}")
-    print("Claude Code will discover the 'query-json' skill on the next session.")
-    return 0
-
-
-# --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
 
@@ -512,7 +468,7 @@ def _add_trim_flags(parser: argparse.ArgumentParser) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="query_json",
+        prog="query-json",
         description="Query large JSON files without loading them into an agent's context.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
@@ -557,8 +513,6 @@ def build_parser() -> argparse.ArgumentParser:
     p_grep.add_argument("pattern", help="Substring to search for")
     p_grep.add_argument("--limit", type=int, default=50, help="Max matching lines (default: 50)")
     _add_json_flag(p_grep)
-
-    sub.add_parser("install", help="Register the query-json skill with Claude Code")
 
     return parser
 
@@ -663,9 +617,6 @@ def _cmd_get(args, data) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-
-    if args.command == "install":
-        return install_run(args)
 
     path: Path = args.file
     if not path.is_file():

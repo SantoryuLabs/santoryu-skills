@@ -1,18 +1,21 @@
 """Unit tests for query_json's pure logic.
 
-Stdlib unittest on purpose: this tool ships with no dependencies, and its tests
-should not add one. Run with:
+Stdlib unittest on purpose: this tool ships with no dependencies of its own, and
+its tests should not add one. Run with:
 
-    python -m unittest discover -s query-json
+    python -m unittest discover -s tests
 """
 
 from __future__ import annotations
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import query_json as qj
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from santoryu import query_json as qj  # noqa: E402
 
 
 class EncodingTests(unittest.TestCase):

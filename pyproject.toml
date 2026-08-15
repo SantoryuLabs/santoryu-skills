@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "santoryu"
+version = "0.1.0"
+description = "Three-blade fast-model orchestration for Claude Code: Opus plans and reviews, a Cursor agent does the legwork."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "farukkaradas" }]
+dependencies = [
+    "cursor-sdk",
+    "python-dotenv",
+]
+
+# Two commands, not one with a nested subcommand: santoryu and query-json are
+# independent Claude skills with independent triggers, and the skill markdown
+# names these commands directly.
+[project.scripts]
+santoryu = "santoryu.cli:main"
+query-json = "santoryu.query_json:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+santoryu = ["data/skills/*/SKILL.md"]
