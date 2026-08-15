@@ -1,0 +1,2 @@
+cursor-sdk
+python-dotenv
