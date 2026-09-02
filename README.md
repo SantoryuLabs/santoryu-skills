@@ -10,7 +10,7 @@ a console command on PATH for each.
 ## Install
 
 ```bash
-pipx install git+https://github.com/farukkaradas/santoryu-skills.git
+pipx install git+https://github.com/SantoryuLabs/santoryu-skills.git
 ```
 
 From a local checkout, `pipx install .` (or `pip install .`) does the same.
@@ -42,7 +42,7 @@ This repo is also a plugin marketplace, which is the shorter route: it registers
 the same skills *and* connects the Mindmap MCP server in one step.
 
 ```
-/plugin marketplace add farukkaradas/santoryu-skills
+/plugin marketplace add SantoryuLabs/santoryu-skills
 /plugin install santoryu@santoryu
 ```
 
