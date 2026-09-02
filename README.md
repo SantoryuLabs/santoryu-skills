@@ -36,6 +36,30 @@ No filesystem path is written into the installed copy, so moving, renaming, or
 deleting this checkout cannot break the install. It is idempotent and overwrites
 a stale earlier install. Restart Claude Code to pick the skills up.
 
+### Or install as a Claude Code plugin
+
+This repo is also a plugin marketplace, which is the shorter route: it registers
+the same skills *and* connects the Mindmap MCP server in one step.
+
+```
+/plugin marketplace add farukkaradas/santoryu-skills
+/plugin install santoryu@santoryu
+```
+
+The plugin reads its skills straight out of `src/santoryu/data/skills/`, so
+there is one copy of each `SKILL.md` and no way for the plugin and the pip
+package to drift apart. Pick one route or the other — installing both leaves
+Claude Code holding the same skill twice.
+
+**The plugin does not install the CLI.** Claude Code plugins cannot run an
+install step, so `pipx install` above is still required; the `santoryu` skill
+calls the `santoryu` command directly and reports a plain error if it is
+missing.
+
+The bundled MCP server (`.mcp.json`) points at `https://santoryu.net/mcp` and
+authenticates over OAuth — the client opens a browser, you sign in, and there is
+no token to paste. See <https://santoryu.net/install>.
+
 Check the model ids on your account (Grok 4.5 may show up here):
 
 ```bash

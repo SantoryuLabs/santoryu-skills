@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "mindmap": {
+      "type": "http",
+      "url": "https://santoryu.net/mcp"
+    }
+  }
+}

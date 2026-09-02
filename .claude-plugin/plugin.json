@@ -1,0 +1,13 @@
+{
+  "name": "santoryu",
+  "displayName": "Santoryu",
+  "version": "0.1.0",
+  "description": "Three-blade orchestration for Claude Code: Opus plans and reviews, a repo-aware Cursor agent does the exploration and the mechanical work. Requires the santoryu CLI on PATH (pipx install git+https://github.com/farukkaradas/santoryu-skills.git).",
+  "author": {
+    "name": "farukkaradas"
+  },
+  "homepage": "https://santoryu.net/install",
+  "repository": "https://github.com/farukkaradas/santoryu-skills",
+  "license": "MIT",
+  "skills": "./src/santoryu/data/skills/"
+}

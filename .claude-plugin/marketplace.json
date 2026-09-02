@@ -1,0 +1,14 @@
+{
+  "name": "santoryu",
+  "owner": {
+    "name": "farukkaradas"
+  },
+  "description": "Santoryu: three-blade orchestration skills for Claude Code, plus the Mindmap MCP server.",
+  "plugins": [
+    {
+      "name": "santoryu",
+      "source": ".",
+      "description": "Opus plans and reviews while a fast Cursor agent does the legwork. Ships the santoryu and query-json skills and connects the Mindmap MCP server at santoryu.net."
+    }
+  ]
+}
