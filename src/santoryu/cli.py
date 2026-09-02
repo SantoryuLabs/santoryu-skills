@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-santoryu.py — three-blade fast-model orchestration for Claude Code / Opus.
+santoryu.py — Santoryu's orchestration blade: fast-model delegation for Opus.
 
 Opus stays the planner and reviewer (the mind). This CLI is the sword arm: it
-delegates one prompt to a fast model and prints the reply to stdout. Two blades:
+delegates one prompt to a fast model and prints the reply to stdout. Two runners:
 
   cursor   Run a Cursor agent (Composer 2.5 / Grok) via cursor-sdk — repo-aware,
            tool-using, with plan/agent modes. Auth: CURSOR_API_KEY.
   fast     One-shot chat call to any OpenAI-compatible endpoint (xAI / OpenRouter
            / OpenAI). No repo awareness, pure stdlib. Auth: one *_API_KEY env var.
 
-Both blades are stateless: one prompt = one process. Include all needed context
+Both runners are stateless: one prompt = one process. Include all needed context
 in every call. Metadata goes to stderr so stdout stays clean for capturing the
 draft; Opus owns the plan -> review -> apply loop from the outside.
 
-The `fast` blade is temporarily disabled (see FAST_ENABLED); only `cursor` is
+The `fast` runner is temporarily disabled (see FAST_ENABLED); only `cursor` is
 exposed on the CLI. Its implementation is kept intact for easy re-enabling.
 
 Usage:
@@ -106,13 +106,13 @@ def read_prompt(prompt, prompt_file, allow_stdin):
 
 
 # --------------------------------------------------------------------------- #
-# Blade 1: cursor — repo-aware Cursor agent via cursor-sdk
+# Runner 1: cursor — repo-aware Cursor agent via cursor-sdk
 #
 # Uses the SDK's ASYNC API, not the sync one. The sync bridge reads the helper
 # process's stderr pipe via select(), which on native Windows raises WinError
 # 10038 (WinSock select accepts only sockets, never pipes). The async bridge
 # reads the pipe with asyncio (ProactorEventLoop/IOCP on Windows, epoll on
-# Linux), so this blade runs on Windows without WSL and on Linux unchanged.
+# Linux), so this runner runs on Windows without WSL and on Linux unchanged.
 #
 # Flow is create -> send -> wait (NOT the one-shot AsyncAgent.prompt): prompt()
 # returns only a RunResult and disposes the agent, so when Cursor leaves the
@@ -418,7 +418,7 @@ def cursor_run(args):
 
 
 # --------------------------------------------------------------------------- #
-# Blade 2: fast — one-shot OpenAI-compatible chat call (pure stdlib)
+# Runner 2: fast — one-shot OpenAI-compatible chat call (pure stdlib)
 # --------------------------------------------------------------------------- #
 
 # (env var, default base url, default model). First key found wins.
@@ -491,7 +491,7 @@ def fast_run(args):
 
 
 # --------------------------------------------------------------------------- #
-# Blade 3: install — register the packaged skills with Claude Code
+# install — register the packaged skills with Claude Code (not a runner)
 #
 # A straight copy of every SKILL.md this package ships. The markdown names the
 # console commands, which are on PATH, so no path is stamped and no secret is
@@ -522,7 +522,7 @@ def install_run(args):
 # CLI
 # --------------------------------------------------------------------------- #
 
-# The `fast` blade is temporarily disabled: its implementation is kept intact
+# The `fast` runner is temporarily disabled: its implementation is kept intact
 # below but not exposed on the CLI. Flip this to True to re-enable it.
 FAST_ENABLED = False
 
@@ -530,12 +530,12 @@ FAST_ENABLED = False
 def build_parser():
     ap = argparse.ArgumentParser(
         prog="santoryu",
-        description="Three-blade fast-model orchestration: delegate a prompt to a "
+        description="Santoryu's orchestration blade: delegate a prompt to a "
         "Cursor agent or an OpenAI-compatible model; Opus reviews.",
     )
-    sub = ap.add_subparsers(dest="blade", required=True)
+    sub = ap.add_subparsers(dest="command", required=True)
 
-    # --- cursor blade ---
+    # --- cursor runner ---
     c = sub.add_parser("cursor", help="Delegate one prompt to a Cursor agent (repo-aware).")
     c.add_argument("--list-models", action="store_true", help="List model ids available to your account, then exit.")
     csrc = c.add_mutually_exclusive_group()
@@ -568,7 +568,7 @@ def build_parser():
     )
     c.add_argument("--no-guard", action="store_true", help="Disable auto-review gating (NOT recommended).")
 
-    # --- fast blade (temporarily disabled; see FAST_ENABLED) ---
+    # --- fast runner (temporarily disabled; see FAST_ENABLED) ---
     if FAST_ENABLED:
         f = sub.add_parser("fast", help="One-shot call to an OpenAI-compatible model (no repo).")
         fsrc = f.add_mutually_exclusive_group(required=True)
@@ -586,7 +586,7 @@ def build_parser():
         f.add_argument("--temperature", type=float, default=0.3)
         f.add_argument("--max-tokens", type=int, default=8000)
 
-    # --- install blade ---
+    # --- install subcommand ---
     sub.add_parser("install", help="Register the packaged skills (santoryu, query-json) with Claude Code.")
 
     return ap
@@ -595,14 +595,14 @@ def build_parser():
 def main():
     args = build_parser().parse_args()
 
-    if args.blade == "cursor":
+    if args.command == "cursor":
         if args.list_models:
             cursor_list_models()
             return
         cursor_run(args)
-    elif args.blade == "fast":
+    elif args.command == "fast":
         fast_run(args)
-    elif args.blade == "install":
+    elif args.command == "install":
         install_run(args)
 
 

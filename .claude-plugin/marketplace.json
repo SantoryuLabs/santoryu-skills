@@ -3,7 +3,7 @@
   "owner": {
     "name": "Santoryu Labs"
   },
-  "description": "Santoryu: three-blade orchestration skills for Claude Code, plus the Mindmap MCP server.",
+  "description": "Santoryu's orchestration blade: skills for Claude Code, plus the Mindmap MCP server.",
   "plugins": [
     {
       "name": "santoryu",

@@ -1,4 +1,4 @@
-"""Santoryu — three-blade fast-model orchestration for Claude Code.
+"""Santoryu — the orchestration blade: fast-model delegation for Claude Code.
 
 Opus plans and reviews; a repo-aware Cursor agent does the mechanical work.
 Installed as a package so the skills it registers name console commands rather

@@ -1,7 +1,10 @@
 # Santoryu — setup and usage
 
-Three blades, one mind. Opus (Claude Code) plans and reviews; two fast "blades" —
-a repo-aware Cursor agent and a raw OpenAI-compatible model — do the mechanical
+Santoryu's orchestration blade. Its blades are its products: this one, Mindmap
+(the work environment at santoryu.net) and a workspace still to come.
+
+Inside this one: Opus (Claude Code) plans and reviews; two fast runners — a
+repo-aware Cursor agent and a raw OpenAI-compatible model — do the mechanical
 work. The goal: cut the number of slow iterations.
 
 The package ships two Claude Code skills, `santoryu` and `query-json`, and puts
@@ -16,7 +19,7 @@ pipx install git+https://github.com/SantoryuLabs/santoryu-skills.git
 From a local checkout, `pipx install .` (or `pip install .`) does the same.
 Python 3.10+; dependencies come with the package.
 
-Then give the Cursor blade a key — export `CURSOR_API_KEY=crsr_...` (User API
+Then give the Cursor runner a key — export `CURSOR_API_KEY=crsr_...` (User API
 key from Cursor Dashboard -> API Keys), or write it into `~/.santoryu/.env`:
 
 ```
@@ -66,8 +69,8 @@ Check the model ids on your account (Grok 4.5 may show up here):
 santoryu cursor --list-models
 ```
 
-> The `fast` blade is currently disabled (`FAST_ENABLED = False` in
-> `src/santoryu/cli.py`); only the `cursor` blade is exposed. Flip the flag to
+> The `fast` runner is currently disabled (`FAST_ENABLED = False` in
+> `src/santoryu/cli.py`); only the `cursor` runner is exposed. Flip the flag to
 > re-enable it.
 
 ## Flow (plan -> review -> apply)
@@ -99,9 +102,9 @@ python -m unittest discover -s tests
 ```
 
 ## Notes
-- The cursor blade has auto-review on by default: the fast model's file/shell
+- The cursor runner has auto-review on by default: the fast model's file/shell
   actions are gated for review. `--sandbox` is stricter, `--no-guard` turns it
   off (not recommended).
-- Runs on native Windows (no WSL): the cursor blade uses the SDK's async API,
+- Runs on native Windows (no WSL): the cursor runner uses the SDK's async API,
   sidestepping the sync bridge's `select()`-on-pipe limitation. Linux and macOS
   are unaffected.

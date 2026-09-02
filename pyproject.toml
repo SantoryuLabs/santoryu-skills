@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "santoryu"
 version = "0.1.0"
-description = "Three-blade fast-model orchestration for Claude Code: Opus plans and reviews, a Cursor agent does the legwork."
+description = "Santoryu's orchestration blade: Opus plans and reviews, a Cursor agent does the legwork."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

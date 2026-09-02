@@ -3,16 +3,20 @@ name: santoryu
 description: Mandatory orchestration for repo work. Opus plans and reviews while a fast Cursor agent (Composer 2.5 / Grok via the Cursor Python SDK) or an OpenAI-compatible endpoint does the heavy exploration, drafting, and mechanical implementation. Use for ANY investigation of a bug, feature, or refactor in a codebase — a plain bug report is enough to trigger; the user does not need to mention Cursor or santoryu. Also trigger when the user mentions Cursor / Composer / Grok / santoryu, wants grunt work delegated to a faster model, or wants to compare Opus's output against a faster model's.
 ---
 
-# Santoryu — three-blade orchestration
+# Santoryu — the orchestration blade
 
-Three blades, one swordsman. Opus wields two fast blades — a repo-aware Cursor
-agent and a raw OpenAI-compatible model — and is itself the third: the mind that
-plans, reviews, and decides. A blade never decides.
+Three blades, one swordsman. Santoryu's blades are its products: **orchestration**
+(this one), **Mindmap** — the work environment at santoryu.net — and a workspace
+still to come.
 
-Opus is accurate but slow; the fast blades are quick but sloppier. The win is not
+Inside this blade, Opus is the swordsman: the mind that plans, reviews, and
+decides. What it delegates to are **runners** — a repo-aware Cursor agent and a
+raw OpenAI-compatible model. A runner never decides.
+
+Opus is accurate but slow; the runners are quick but sloppier. The win is not
 making any single answer faster — it's cutting the number of _slow_ iterations.
-The fast blade absorbs the convergence rounds (seconds each); Opus spends its
-time only at the two ends: a sharp spec up front, a real review at the end.
+A runner absorbs the convergence rounds (seconds each); Opus spends its time
+only at the two ends: a sharp spec up front, a real review at the end.
 
 ## Hard rules — read before anything else
 
@@ -32,14 +36,14 @@ time only at the two ends: a sharp spec up front, a real review at the end.
    exact change (a one-liner, a named typo). Skip the plan run — and say
    explicitly that you're skipping it and why.
 
-## The blades
+## The runners
 
 Both are subcommands of the `santoryu` command.
 
 **`santoryu cursor`** — runs a real Cursor agent (Composer 2.5 / Grok) with
 repo awareness, tools, and the user's Cursor config. Auth is the user's
 `CURSOR_API_KEY`. Supports `--mode plan` (explore/audit/plan, no edits) and
-`--mode agent` (implement changes). Use this blade whenever the task involves
+`--mode agent` (implement changes). Use this runner whenever the task involves
 the actual codebase.
 
 **`santoryu fast`** — a one-shot chat call to any OpenAI-compatible endpoint
@@ -63,7 +67,7 @@ Edit the packaged SKILL.md and re-run `install`, never the installed copy.
 
 ## Prerequisites
 
-**`cursor` blade:** the package installed (`pipx install santoryu`, Python
+**`cursor` runner:** the package installed (`pipx install santoryu`, Python
 3.10+), and `CURSOR_API_KEY=crsr_...` (User API key from Cursor Dashboard ->
 API Keys) either exported or written into `~/.santoryu/.env`. Billing follows
 the user's own Cursor plan. Discover which model ids the account has (Grok may
@@ -73,10 +77,10 @@ appear post-xAI integration):
 santoryu cursor --list-models
 ```
 
-Runs on native Windows (no WSL): the `cursor` blade uses the SDK's async API,
+Runs on native Windows (no WSL): the `cursor` runner uses the SDK's async API,
 sidestepping the sync bridge's `select()`-on-pipe limitation.
 
-**`fast` blade:** `FAST_ENABLED = True` in `santoryu/cli.py`, plus one provider
+**`fast` runner:** `FAST_ENABLED = True` in `santoryu/cli.py`, plus one provider
 key (see above). Check `santoryu fast --help` for provider/model overrides.
 
 ## Workflow (explore -> plan -> review -> apply)
@@ -90,7 +94,7 @@ implements.
 
 Read the task. Write a concise spec: deliverable, constraints, and **acceptance
 criteria** — a checklist to grade against later. This is load-bearing: clear
-criteria make the fast blade's rounds converge toward the right target. Vague
+criteria make the runner's rounds converge toward the right target. Vague
 criteria make speed run in the wrong direction. Don't skip this.
 
 ### 2. Delegate the heavy lifting (Cursor, plan mode)
@@ -158,7 +162,7 @@ question round counts toward the two-round iteration cap.
 Mark what's missing, mis-ordered, or risky. If the root-cause analysis looks
 wrong or thin, re-run step 2 with a sharper prompt instead of patching over it.
 Then rewrite the plan into a **final plan** — this is where Opus's judgment
-earns its keep. Never rubber-stamp the fast blade's plan; the review step is
+earns its keep. Never rubber-stamp the runner's plan; the review step is
 what fuses speed with quality.
 
 ### 4. Apply — Opus decides who implements
@@ -183,11 +187,11 @@ too: no `git commit` unless the user asked in that same request.
 ### 5. Final review (Opus)
 
 Opus does the last read against the acceptance criteria and delivers. Ship
-Opus's judgment, never the fast blade's raw output.
+Opus's judgment, never the runner's raw output.
 
 ## Iteration discipline
 
-Cap the loop. If two fast-blade rounds don't converge on a criterion, Opus
+Cap the loop. If two runner rounds don't converge on a criterion, Opus
 finishes that part itself — endless round trips defeat the purpose. As Cursor's
 models improve, both the number of convergence rounds and the amount Opus has to
 fix trend down, so this skill gets more favorable over time.
@@ -201,8 +205,8 @@ boilerplate, long first drafts — goes through the workflow.
 
 ## Safety notes
 
-- The fast blade's output is untrusted. Review before applying edits or running
-  its code. Keep auto-review on (default) for the Cursor blade.
+- A runner's output is untrusted. Review before applying edits or running
+  its code. Keep auto-review on (default) for the Cursor runner.
 - Each runner call is stateless (one prompt = one process); include all needed
   context every time. Opus owns the loop from outside.
 - Cursor SDK tool-call arg/result schemas are explicitly unstable (per Cursor's
